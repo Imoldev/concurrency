@@ -1,0 +1,94 @@
+stages:  
+  - test
+  - build
+  - pack
+  - deploy-test
+  - deploy-stage
+  - deploy-prod
+cache:
+  when: on_success
+  paths:
+    - node_modules/
+variables:
+  DOCKER_IMAGE: $DOCKERHUB/cleversite/roulette-service:$CI_COMMIT_REF_SLUG-$CI_PIPELINE_ID
+
+build:
+  stage: build
+  tags: [ docker ]
+  image: node:18.13.0
+  script:
+    - npm set registry http://npm.servicecloud.info:8080
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - dist
+
+build-deps:
+  stage: build
+  tags: [ docker ]
+  image: node:18.13.0
+  script:
+    - npm set registry http://npm.servicecloud.info:8080
+    - npm install --production
+  artifacts:
+    paths:
+      - node_modules
+
+pack:
+  stage: pack
+  tags: [ docker ]
+  image: docker
+  dependencies: [ build, build-deps ]
+  script:
+    - docker build . -t $DOCKER_IMAGE
+    - docker push $DOCKER_IMAGE
+
+deploy-testing:
+  stage: deploy-test
+  tags: [docker]
+  dependencies: []
+  image: $DOCKERHUB/helmutils:1.0.1-b1
+  when: manual
+  script:
+    - chmod 600 $KUBECONFIG_TESTING
+    - helm upgrade --install roulette-service deploy/
+      --kubeconfig $KUBECONFIG_TESTING
+      --namespace cleversite-testing --wait
+      --values deploy/values.testing.yaml
+      --set dockerImage=$DOCKER_IMAGE
+      --set listenDomain=services.cleversite.k8s.testing.local
+
+deploy-stage:
+  stage: deploy-stage
+  tags: [docker]
+  dependencies: []
+  image: $DOCKERHUB/helmutils:1.0.1-b1
+  when: manual
+  script:
+    - chmod 600 $KUBECONFIG_TESTING
+    - helm upgrade --install roulette-service deploy/
+      --kubeconfig $KUBECONFIG_TESTING
+      --namespace cleversite-staging --wait
+      --values deploy/values.staging.yaml
+      --set dockerImage=$DOCKER_IMAGE
+      --set listenDomain=services.cleversite.k8s.staging.local
+
+
+deploy-prod:
+  stage: deploy-prod
+  tags: [docker]
+  dependencies: []
+  image: $DOCKERHUB/helmutils:1.0.1-b1
+  when: manual
+  only:
+    variables:
+      - $CI_COMMIT_TAG =~ /^[0-9]+\.[0-9]+\.[0-9]+$/
+  script:
+    - chmod 600 $KUBECONFIG_PROD
+    - helm upgrade --install roulette-service deploy/
+      --kubeconfig $KUBECONFIG_PROD
+      --namespace cleversite-prod --wait
+      --values deploy/values.prod.yaml
+      --set dockerImage=$DOCKER_IMAGE
+      --set listenDomain=services.cleversite.k8s.prod.local
