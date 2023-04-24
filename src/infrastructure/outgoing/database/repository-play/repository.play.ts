@@ -6,13 +6,18 @@ import { dehydrate, hydrate, PlayRow } from './translator';
 
 export class RepositoryPlay extends Repository implements RepositoryPlayInterface {
   async update(play: Play): Promise<void> {
-    const playQuery = 'UPDATE play SET :values';
+    const playQuery = 'UPDATE play SET data_version = data_version + 1, :values WHERE data_version = :data_version';
 
     const playRow = dehydrate(play);
+    const { data_version, ...playValues } = playRow;
 
     const connection = await this.getConnection();
 
-    await connection.query(playQuery, { values: playRow });
+    const result = await connection.query(playQuery, { values: playValues, data_version });
+
+    if (result[0]['changedRows'] !== 1) {
+      throw new ErrorConcurrency('Play not updated: data versions conflict');
+    }
   }
 
   async get(): Promise<Play> {
