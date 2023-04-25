@@ -16,7 +16,7 @@ export class RepositoryPlay extends Repository implements RepositoryPlayInterfac
     const result = await connection.query(playQuery, { values: playValues, data_version });
 
     if (result[0]['changedRows'] !== 1) {
-      throw new ErrorConcurrency('Play not updated: data versions conflict');
+      //throw new ErrorConcurrency('Play not updated: data versions conflict');
     }
   }
 
