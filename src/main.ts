@@ -11,18 +11,10 @@ async function bootstrap() {
   const expressServer = express();
 
   expressServer.post(
-    '/red',
+    '/insert',
     asyncHandler(async (request, response) => {
-      await goalsHandler.score(uuidv4(), 'red');
-      response.status(201).send('Ok');
-    }),
-  );
-
-  expressServer.post(
-    '/green',
-    asyncHandler(async (request, response) => {
-      await goalsHandler.score(uuidv4(), 'green');
-      response.status(201).send('Ok');
+      console.log(98789789);
+      response.status(200);
     }),
   );
 

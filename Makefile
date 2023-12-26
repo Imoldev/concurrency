@@ -31,10 +31,10 @@ seed-run:
 	docker-compose run --rm cli knex seed:run --knexfile ./db/knexfile
 
 mysql:
-	docker exec -it concurrency_db57_1 mysql -udb_user -pSecret -Dconcurrency_db
+	docker exec -it concurrency-db57-1 mysql -udb_user -pSecret -Dconcurrency_db
 
 purge-database:
-	docker exec -it concurrency_db57_1 mysql -udb_user -pSecret -e "DROP DATABASE IF EXISTS concurrency_db; CREATE DATABASE IF NOT EXISTS concurrency_db;"
+	docker exec -it concurrency-db57-1 mysql -udb_user -pSecret -e "DROP DATABASE IF EXISTS concurrency_db; CREATE DATABASE IF NOT EXISTS concurrency_db;"
 
 recreate-db: purge-database	migrate-latest seed-run
 

@@ -3,7 +3,7 @@
 const autocannon = require('autocannon')
 
 const instance = autocannon({
-    url: 'http://play-server:3003/green',
+    url: 'http://play-server:3003/insert',
     method: 'POST',
     connections: 2, //default
     pipelining: 1,
