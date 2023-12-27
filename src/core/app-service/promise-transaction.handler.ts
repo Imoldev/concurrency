@@ -6,12 +6,17 @@ export class PromiseTransactionHandler extends Repository {
     @AsyncDbTransactional()
     public async handle() {
 
-        const table1 = 'INSERT INTO `table_1` SET :values';
-        const table2 = 'INSERT INTO `table_2` SET :values';
-        const table3 = 'INSERT INTO `table_2` SET :values';
+        const table1 = 'INSERT INTO `table_1` VALUES()';
 
         const connection = await this.getConnection();
-        await Promise.all([connection.query( table1, { values: undefined }), Promise.reject(), Promise.reject]);
 
+        await Promise.all([delay(() => connection.query(table1), Math.floor(Math.random() * 1000)), Promise.reject()])
     }
+}
+
+function delay<T>(call: () => Promise<T>, delay: number): Promise<T> {
+
+    return new Promise((resolve, reject) => {
+        setTimeout(() => { resolve(call())}, delay)
+    })
 }

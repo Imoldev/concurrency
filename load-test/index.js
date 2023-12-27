@@ -5,9 +5,9 @@ const autocannon = require('autocannon')
 const instance = autocannon({
     url: 'http://play-server:3003/insert',
     method: 'POST',
-    connections: 2, //default
+    connections: 5,
     pipelining: 1,
-    duration: 10
+    duration: 100
 }, () => { })
 
 
